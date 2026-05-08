@@ -1,0 +1,194 @@
+openapi: 3.0.3
+info:
+  title: Workshop API - Contract First
+  version: 1.0.0
+  description: API generada a partir de contrato YAML para el Workshop.
+paths:
+  /api/v1:
+    get:
+      tags: [workshop]
+      operationId: getWorkshopHealth
+      summary: Obtiene el estado general de la API
+      responses:
+        '200':
+          description: Objeto con estado y mensaje
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/saludos:
+    get:
+      tags: [workshop]
+      operationId: saludarPorGet
+      summary: Saludo mediante GET
+      parameters:
+        - name: nombre
+          in: query
+          required: false
+          schema:
+            type: string
+            default: Mundo
+      responses:
+        '200':
+          description: Saludo generado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaludoResponse'
+    post:
+      tags: [workshop]
+      operationId: saludarPorPost
+      summary: Saludo mediante POST
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaludoRequest'
+      responses:
+        '200':
+          description: Saludo generado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaludoResponse'
+  /api/v1/simulaciones/prestamo:
+    post:
+      tags: [simulaciones]
+      operationId: simularPrestamo
+      summary: Simular un préstamo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrestamoRequest'
+      responses:
+        '200':
+          description: Resultado de la simulación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrestamoResponse'
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/demo/estado/singleton/{valor}:
+    post:
+      tags: [demo-estado]
+      operationId: actualizarSingleton
+      parameters:
+        - name: valor
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/demo/estado/singleton:
+    get:
+      tags: [demo-estado]
+      operationId: obtenerSingleton
+      responses:
+        '200':
+          description: Estado actual
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/demo/estado/singleton/reset:
+    post:
+      tags: [demo-estado]
+      operationId: reiniciarSingleton
+      responses:
+        '200':
+          description: Estado reiniciado
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/demo/estado/manual/{valor}:
+    post:
+      tags: [demo-estado]
+      operationId: actualizarManual
+      parameters:
+        - name: valor
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Estado actualizado manual
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/demo/estado/manual:
+    get:
+      tags: [demo-estado]
+      operationId: obtenerManual
+      responses:
+        '200':
+          description: Estado actual manual
+          content:
+            application/json:
+              schema:
+                type: object
+
+components:
+  schemas:
+    SaludoRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+    SaludoResponse:
+      type: object
+      properties:
+        mensaje:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    PrestamoRequest:
+      type: object
+      properties:
+        monto:
+          type: number
+        tasaAnual:
+          type: number
+        meses:
+          type: integer
+          format: int32
+    PrestamoResponse:
+      type: object
+      properties:
+        cuotaMensual:
+          type: number
+        interesTotal:
+          type: number
+        totalPagar:
+          type: number
+    ErrorResponse:
+      type: object
+      properties:
+        codigo:
+          type: string
+        mensaje:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        detalles:
+          type: object
+          additionalProperties:
+            type: string
