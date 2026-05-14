@@ -1,26 +1,42 @@
 openapi: 3.0.3
 info:
-  title: Workshop API - Contract First
+  title: Spring Boot API Demo
   version: 1.0.0
-  description: API generada a partir de contrato YAML para el Workshop.
+  description: API generada bajo el enfoque Contract-First para el workshop.
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor local
+
+tags:
+  - name: workshop
+    description: Endpoints base y de saludos
+  - name: simulaciones
+    description: Operaciones de préstamos
+  - name: demo-estado
+    description: Demostración de Singleton vs Manual
+
 paths:
   /api/v1:
     get:
-      tags: [workshop]
+      tags:
+        - workshop
       operationId: getWorkshopHealth
-      summary: Obtiene el estado general de la API
+      summary: Obtiene el estado del workshop
       responses:
         '200':
-          description: Objeto con estado y mensaje
+          description: Estado del servicio
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/WorkshopResponse'
+
   /api/v1/saludos:
     get:
-      tags: [workshop]
+      tags:
+        - workshop
       operationId: saludarPorGet
-      summary: Saludo mediante GET
+      summary: Retorna un saludo simple
       parameters:
         - name: nombre
           in: query
@@ -30,15 +46,16 @@ paths:
             default: Mundo
       responses:
         '200':
-          description: Saludo generado exitosamente
+          description: Saludo exitoso
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SaludoResponse'
     post:
-      tags: [workshop]
+      tags:
+        - workshop
       operationId: saludarPorPost
-      summary: Saludo mediante POST
+      summary: Retorna un saludo validando el cuerpo de la petición
       requestBody:
         required: true
         content:
@@ -47,16 +64,24 @@ paths:
               $ref: '#/components/schemas/SaludoRequest'
       responses:
         '200':
-          description: Saludo generado exitosamente
+          description: Saludo exitoso
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SaludoResponse'
+        '400':
+          description: Error de validación o regla de negocio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/simulaciones/prestamo:
     post:
-      tags: [simulaciones]
+      tags:
+        - simulaciones
       operationId: simularPrestamo
-      summary: Simular un préstamo
+      summary: Simula las cuotas de un préstamo
       requestBody:
         required: true
         content:
@@ -65,7 +90,7 @@ paths:
               $ref: '#/components/schemas/PrestamoRequest'
       responses:
         '200':
-          description: Resultado de la simulación
+          description: Simulación exitosa
           content:
             application/json:
               schema:
@@ -76,10 +101,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/demo/estado/singleton/{valor}:
     post:
-      tags: [demo-estado]
+      tags:
+        - demo-estado
       operationId: actualizarSingleton
+      summary: Actualiza el valor de un estado singleton
       parameters:
         - name: valor
           in: path
@@ -92,33 +120,42 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/EstadoResponse'
+
   /api/v1/demo/estado/singleton:
     get:
-      tags: [demo-estado]
+      tags:
+        - demo-estado
       operationId: obtenerSingleton
+      summary: Obtiene el estado actual del singleton
       responses:
         '200':
           description: Estado actual
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/EstadoResponse'
+
   /api/v1/demo/estado/singleton/reset:
     post:
-      tags: [demo-estado]
+      tags:
+        - demo-estado
       operationId: reiniciarSingleton
+      summary: Reinicia el estado del singleton
       responses:
         '200':
           description: Estado reiniciado
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/EstadoResponse'
+
   /api/v1/demo/estado/manual/{valor}:
     post:
-      tags: [demo-estado]
+      tags:
+        - demo-estado
       operationId: actualizarManual
+      summary: Actualiza un estado creado manualmente
       parameters:
         - name: valor
           in: path
@@ -127,30 +164,54 @@ paths:
             type: integer
       responses:
         '200':
-          description: Estado actualizado manual
+          description: Estado manual actualizado
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/EstadoResponse'
+
   /api/v1/demo/estado/manual:
     get:
-      tags: [demo-estado]
+      tags:
+        - demo-estado
       operationId: obtenerManual
+      summary: Obtiene el estado de una instancia manual
       responses:
         '200':
-          description: Estado actual manual
+          description: Estado manual actual
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/EstadoResponse'
 
 components:
   schemas:
+    WorkshopResponse:
+      type: object
+      properties:
+        estado:
+          type: string
+        mensaje:
+          type: string
+
+    EstadoResponse:
+      type: object
+      properties:
+        tipo:
+          type: string
+        valorActual:
+          type: integer
+
     SaludoRequest:
       type: object
+      required:
+        - nombre
       properties:
         nombre:
           type: string
+          maxLength: 50
+          minLength: 1
+
     SaludoResponse:
       type: object
       properties:
@@ -159,16 +220,27 @@ components:
         timestamp:
           type: string
           format: date-time
+
     PrestamoRequest:
       type: object
+      required:
+        - monto
+        - tasaAnual
+        - meses
       properties:
         monto:
           type: number
+          minimum: 0
+          exclusiveMinimum: true
         tasaAnual:
           type: number
+          minimum: 0
+          exclusiveMinimum: true
         meses:
           type: integer
-          format: int32
+          minimum: 1
+          maximum: 360
+
     PrestamoResponse:
       type: object
       properties:
@@ -178,6 +250,7 @@ components:
           type: number
         totalPagar:
           type: number
+
     ErrorResponse:
       type: object
       properties:
